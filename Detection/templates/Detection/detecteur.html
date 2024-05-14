@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<i class="bi bi-list mobile-nav-toggle d-lg-none"></i>
+  <!-- ======= Header ======= -->
+  <header id="header" class="d-flex flex-column justify-content-center">
+
+    <nav id="navbar" class="navbar nav-menu">
+      <ul>
+        <li><a href="{% url 'accueil' %}" class="nav-link scrollto"><i class="bx bx-home"></i> <span>Accueil</span></a></li>
+        <li><a href="{% url "detecteur_objet" %}" class="nav-link scrollto active"><i class="bx bx-play"></i> <span>Lancer</span></a></li>
+        <li><a href="{% url "detecteur_objet" %}?y=stop" class="nav-link scrollto text-white bg-danger"><i class="bx bx-stop"></i> <span>Arrêter</span></a></li>
+        
+      </ul>
+    </nav><!-- .nav-menu -->
+
+  </header><!-- End Header -->
+<section class="py-1 bg-light" style="min-height:400px;">
+    <div class="container px-4 px-lg-2 mt-1">
+        <div class="form-group">
+            <div class="row bg-light m-2 mt-2 p-2 m-lg-0 p-lg-0 text-center shadow-lg">
+                
+                <span class="text-danger text-center p-0"> {{text}} </span>
+                <span class="text-center p-0 text-light">Detection de signe</span>
+                <div class="col-lg-10 mt-0 text-white offset-lg-1" id="prediction">
+                    {% if stop == 1 %}
+                        <img src="{% static 'img/off.png' %}" width="64" height="48">
+                        <br/> <br/> <br/>
+                        <span class='fw-bold text-black m-3 p-1 '>
+                            Texte transcrit  
+                        </span>
+                        <div class="overflow-auto mt-2" style="max-height:200px;">
+                            <p class="text-black mt-2"> {{ text_transcript }} </p>
+                        </div>
+                        <br/>
+                        <a href="{% url 'telecharge_transcription' %}" class="btn btn-primary m-3">
+                            Telecharger le Texte
+                        </a>
+                    {% elif stop == 0 %}
+                        <img src="{% url 'video_feed' %}" width="640" height="480">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    .slidecontainer {
+        width: 100%; /* Width of the outside container */
+      }
+      
+      /* The slider itself */
+      .slider {
+        -webkit-appearance: none;  /* Override default CSS styles */
+        appearance: none;
+        width: 100%; /* Full-width */
+        height: 10px; /* Specified height */
+        background: #d3d3d3; /* Grey background */
+        border-radius: 20%;
+        outline: none; /* Remove outline */
+        opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+        -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+        transition: opacity .2s;
+      }
+      
+      /* Mouse-over effects */
+      .slider:hover {
+        opacity: 1; /* Fully shown on mouse-over */
+      }
+      
+      /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none; /* Override default look */
+        appearance: none;
+        width: 20px; /* Set a specific slider handle width */
+        border-radius: 50%;
+        height: 20px; /* Slider handle height */
+        background: blue; /* Green background */
+        cursor: pointer; /* Cursor on hover */
+      }
+      
+      .slider::-moz-range-thumb {
+        width: 20px; /* Set a specific slider handle width */
+        border-radius: 50%;
+        height: 15px; /* Slider handle height */
+        background: blue; /* Green background */
+        cursor: pointer; /* Cursor on hover */
+      }
+</style>
+<i class="bi bi-list mobile-nav-toggle d-lg-none"></i>
+  <!-- ======= Header ======= -->
+  <header id="header" class="d-flex flex-column justify-content-center">
+
+    <nav id="navbar" class="navbar nav-menu">
+      <ul>
+        <li><a href="{% url 'accueil' %}" class="nav-link scrollto"><i class="bx bx-home"></i> <span>Accueil</span></a></li>
+        <li><a href="{% url "ajout_geste" %}" class="nav-link scrollto active"><i class="bx bx-plus"></i> <span>Ajouter geste</span></a></li>
+        <li><a href="#labelstatut" id="ouvre_labelimg" class="nav-link scrollto text-white bg-success"><i class="bx bx-laptop"></i> <span>Labeliser</span></a></li>        
+        <li><a href="#Section_train" id="ouvre_entrainement" class="nav-link scrollto text-white bg-success"><i class="bx bx-cog"></i> <span>Entraînement</span></a></li>        
+      </ul>
+    </nav><!-- .nav-menu -->
+
+  </header><!-- End Header -->
+<section class="py-1 bg-light" style="min-height:500px;">
+    <div class="container px-4 px-lg-2 mt-1" data-aos="zoom-in" data-aos-delay="100">
+        <div class="form-group p-3 m-3 container text-center shadow-sm" style="min-height:480px;">
+            <div class="row bg-light m-2 mt-2 p-2 m-lg-0 p-lg-0">
+                
+                <span class="text-danger text-center p-0"> {{text}} </span>
+                <span class="text-center p-0 text-light">Detection de signe</span>
+                <div class="col-lg-10 mt-0 text-white offset-lg-1" id="prediction">
+                    {% if stop == 1 %}
+                        <img src="{% static 'img/off.png' %}" width="64" height="48">
+                        <br/> <br/> <br/>
+                        <span class='fw-bold text-black m-3 p-1 '>
+                            Enregistrer un geste 
+                        </span>
+                        <div class="overflow-auto mt-2 form-group" style="max-height:480px;">
+                            <form name='ajout' method='GET'>
+                                <div class="form-floatting pt-1">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control sm" name="geste" id="id_geste" palceholder="Mot du geste">
+                                        <label for="id_geste">Mot du geste</label>
+                                    </div>
+                                </div>
+                                <input type="submit" class="btn btn-primary btn-sm m-5" value="Ajouter">
+                            </form>
+                        </div>
+                    {% elif stop == 0 %}
+                        <img src="{% url 'video_ajout' geste %}" width="640" height="480">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div id="labelstatut" class="container text-center text-center shadow-sm border p-3 m-3" data-aos="zoom-in" data-aos-delay="100" style="min-height:500px;">
+            {% if labelimg == 'False' %}
+                <div class="d-flex flex-column justify-content-center">
+                    <span class='h2'> Vous pouvez lancer la labelisation en cliquant sur le bouton ci-dessous </span>
+                </div>
+            {% elif labelimg == 'success' %}
+                <div class="container pt-5 mt-5 text-center d-flex flex-column justify-content-center">
+                    <span class='h2'> LabelImg ouvert avec succès </span>
+                </div>
+            {% elif labelimg == 'echec' %}
+                <div class="d-flex flex-column justify-content-center">
+                    <span class='h2'> Echec d'ouverture de LabelImg </span>
+                </div>
+            {% endif %}
+            <a href="?labelImg=10" id="ouvre_labelimg" class="btn btn-primary m-3"><i class="bx bx-laptop"></i> <span>Labeliser</span></a>
+        </div>
+
+        <div id="Section_train" class="container border p-3 shadow-sm m-3 text-center" style="min-height:500px" data-aos="zoom-in" data-aos-delay="100">
+            <span class='h2 p-2'> Entraînement du modèle </span> <br/> <br/>
+            <div class="overflow-auto mt-2 form-group" style="max-height:490px;">
+                <form name='ajout' method='POST' action="">
+                    {% csrf_token %}
+                    <div class="form-floatting pt-1">
+                        <div class="form-floating">
+                            <div class="slidecontainer p-3 mt-3 border"> 
+                                <span class="p-2 m-2"> Proportion des données train/test</span>
+                                <input type="range" name="proportion" min="70" step="5" max="100"value="75" class="slider w-50" id="rangeproport">
+                                <span class="p-2 m-2 fw-bold text-primary" id="valeurproportion"></span>
+                            </div> 
+                            <div class="slidecontainer p-3 mt-3 border"> 
+                                <span class="p-2 m-2"> Nombre etapes par train (epochs)</span>
+                                <input type="range" name="epochs" min="1000" step="50" max="10000"value="1000" class="slider w-50" id="rangeetapetrain">
+                                <span class="p-2 m-2 fw-bold text-primary" id="valeuretapetrain"></span>
+                            </div> 
+                            <div class="slidecontainer p-3 mt-3 border"> 
+                                <span class="p-2 m-2"> Taille de chaque lot (batch size)</span>
+                                <input type="range" name="batch_size" min="4" step="4" max="40"value="8" class="slider w-50" id="rangebatchsize">
+                                <span class="p-2 m-2 fw-bold text-primary" id="valeurbatchsize"></span>
+                            </div> 
+                            <div class="slidecontainer p-3 mt-3 border"> 
+                                {% comment %} <div class="form-check border text-center form-switch">
+                                    <label class="form-check-label col-10" for="use_tpu">Utiliser TPU</label>
+                                    <input class="form-check-input col-2" type="checkbox" id="use_tpu" name="use_tpu" value="no">
+                                </div> {% endcomment %}
+                                <div class="row" style="display:none;">
+                                    <div class="offset-2 col-3 ">
+                                        <label class="form-check-label ms-0" for="use_tpu">Utiliser TPU</label>
+                                    </div>
+                                    <div class=" col-3">
+                                        <div class="form-check text-center form-switch">
+                                            <input class="form-check-input w-25" type="checkbox" id="use_tpu" name="use_tpu" value="yes">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="submit" class="btn btn-primary btn-sm mt-5 ms-1" value="Démarrer entraînement">
+                    <a href="{% url 'change-path' 'restore' %}" class="btn btn-danger btn-sm mt-5 ms-1">Restaurer</a>
+                    <a href="{% url 'change-path' 'new' %}" class="btn btn-success btn-sm mt-5 ms-1">Mettre à jour</a>
+                    {% comment %} <a href="{% url 'entrainement' 80 1000 4 False 2  %}" class="btn btn-success btn-sm mt-5 ms-1">entraine 2</a> {% endcomment %}
+                </form>
+            </div>
+            {% comment %} <a href="{% url 'divise_donnee' %}" class="m-2 btn btn-outline-primary">
+                Divisez les données
+            </a> <br/>
+            <a href="{% url 'genere_tfrecord' %}" class="m-2 btn btn-outline-primary">
+                Generer TFrecords
+            </a> <br/>
+            <a href="{% url 'configure_model' %}" class="m-2 btn btn-outline-primary">
+                Appliquer configuration
+            </a> <br/>
+            <a href="{% url 'train_model' %}" class="m-2 btn btn-outline-primary">
+                Entraîner le modèle
+            </a> {% endcomment %}
+        </div>
+    </div>
+</section>
+<!-- template.html -->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    // Ajoutez un événement de clic au lien
+    document.getElementById('ouvre_labelimg').addEventListener('click', function() {
+        // Déplacez la fenêtre vers le div avec l'id 'labelstatut'
+        document.getElementById('labelstatut').scrollIntoView();
+    });
+    var slider = document.getElementById("rangeproport");
+    var output = document.getElementById("valeurproportion");
+    output.innerHTML = slider.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function() {
+    output.innerHTML = this.value;
+    }
+    var slider1 = document.getElementById("rangeetapetrain");
+    var output1 = document.getElementById("valeuretapetrain");
+    output1.innerHTML = slider1.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider1.oninput = function() {
+    output1.innerHTML = this.value;
+    }
+    var slider2 = document.getElementById("rangebatchsize");
+    var output2 = document.getElementById("valeurbatchsize");
+    output2.innerHTML = slider2.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider2.oninput = function() {
+    output2.innerHTML = this.value;
+    }
+
+</script>
+{% endblock %}

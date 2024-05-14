@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    
+    .gear {
+        width: 75px;
+        height: 75px;
+        background-color: #ddd;
+        border-radius: 50%;
+        position: relative;
+        align: center;
+        animation: rotate 3s linear infinite;
+    }
+    
+    @keyframes rotate {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>    
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let demarrage = 0;
+    window.onload = $.ajax({
+        url: '{% url "entrainement" proportion epochs batch_size use_tpu 1 %}',
+        method: 'GET',
+        success: function(data) {
+            // Traitez les données récupérées du serveur
+            document.getElementById("info_train").innerHTML = "<p>terminé avec succès !</p>";
+
+            demarrage = 1;
+            console.log(data);
+        },
+        error: function(error) {
+            demarrage = 1;
+            document.getElementById("info_train").innerHTML = '<p class="text-danger">Erreur lors de la récupération des données du serveur:</p>'+ error;
+            console.error('Erreur lors de la récupération des données du serveur:', error);
+        }
+        
+    });
+    // Définissez le temps initial du compte à rebours (en secondes)
+    let seconds = 0;
+
+    // Fonction pour ajouter un zéro devant les nombres < 10
+    const pad = (num) => (num < 10 ? '0' : '') + num;
+
+    // Mettez à jour le compte à rebours chaque seconde
+    const countdownElement = document.getElementById('count');
+        setInterval(function() {
+            if (demarrage == 0){
+                seconds++;
+            }
+            const hours = pad(Math.floor(seconds / 3600));
+            const minutes = pad(Math.floor((seconds % 3600) / 60));
+            const remainingSeconds = pad(seconds % 60);
+            if (demarrage == 1){
+                document.getElementById('btnretour').value = "Retour"
+            }
+            // Mettez à jour l'élément HTML avec le compte à rebours
+                countdownElement.textContent = `${hours}:${minutes}:${remainingSeconds}`;
+        }, 1000); 
+});
+    const gearElement = document.getElementById('gear');
+
+    // Obtenir la propriété 'transform' actuelle pour obtenir l'angle de rotation initial
+        const transform = window.getComputedStyle(gearElement).getPropertyValue('transform');
+        const initialRotation = transform === 'none' ? 0 : parseInt(transform.split('(')[1].split(')')[0].split(',')[0]);
+    // Mettre à jour l'angle de rotation toutes les 50 millisecondes
+        setInterval(function() {
+                gearElement.style.transform = `rotate(${initialRotation + Date.now() / 10}deg)`;
+        }, 50);
+</script>
+<section class="py-1 bg-light" style="min-height:500px;">
+    <div class="container px-4 px-lg-2 mt-1" data-aos="zoom-in" data-aos-delay="100">
+        <div class="form-group p-3 m-3 container text-center shadow-sm" style="min-height:480px;">
+            <div class="row bg-light m-2 mt-2 p-2 m-lg-0 p-lg-0">
+                <span class="text-danger text-center p-0"> </span>
+                
+                
+                
+                <span class="text-center p-2 m-2 text-black">Entraînement du modele...</span>
+                
+                <div class="col-lg-10 mt-0 text-white offset-lg-1" id="prediction">
+                    <div class="ms-5">
+                        <div class="gear offset-5 text-black" id="gear">
+                            <i class="bx bx-cog text-center" style="font-size:2em;" ></i>
+                        </div>
+                    </div>
+                        <br/> <br/> <br/>
+                        
+                        <div class="overflow-auto mt-2 form-group" style="max-height:480px;">
+                            <form name='ajout' method='GET' action="{% url 'ajout_geste' %}">
+                                <div class="form-floatting pt-1">
+                                    <div class="form-floating">
+                                        <span class='fw-light text-black h2 m-3 p-1 '  id="count">
+                                        </span> <br/>
+                                        <span class="text-success fw-lighter pt-2 " id="info_train"> </span>
+                                    </div>
+                                </div>
+                                <input type="submit" id="btnretour" class="btn btn-primary btn-sm m-5" value="Annuler">
+                            </form>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+        
+        {% comment %} function() {
+            // Spécifiez l'URL que vous souhaitez ouvrir
+            var urlToOpen = "{% url 'entrainement' %}";
+
+            // Ouvrez l'URL dans une nouvelle fenêtre
+            window.open(urlToOpen);
+
+            // Ou, si vous souhaitez rediriger la page actuelle vers l'URL
+            window.location.href = urlToOpen;
+        }; {% endcomment %}
+</script>
+{% endblock %}
